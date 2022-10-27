@@ -3,21 +3,18 @@ package net.sofigo.screenmirroring
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import com.applovin.mediation.ads.MaxAdView
 import com.applovin.sdk.AppLovinSdkUtils
-import kotlin.math.max
-
 
 class MainActivity : AppCompatActivity() {
   private lateinit var txtInterstitial: TextView
   private lateinit var txtRewarded: TextView
-  private lateinit var maxAdView: MaxAdView
+  private lateinit var maxAdBannerView: MaxAdView
+  private lateinit var viewContainerBanner: FrameLayout
+  private lateinit var viewContainerNative: FrameLayout
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -31,25 +28,26 @@ class MainActivity : AppCompatActivity() {
   private fun setupView() {
     txtInterstitial = findViewById(R.id.txtApplovinMaxInterstitial)
     txtRewarded = findViewById(R.id.txtApplovinMaxRewarded)
+    viewContainerBanner = findViewById(R.id.viewContainerBanner)
+    viewContainerNative = findViewById(R.id.viewContainerNative)
     setupMaxBannerAd()
+    setupMaxNativeAd()
 
 
+  }
+
+  private fun setupMaxNativeAd() {
+    ApplovinHepler.showMaxNative(this, viewContainerBanner)
   }
 
   private fun setupMaxBannerAd() {
     val isTablet = AppLovinSdkUtils.isTablet(this)
     val heightPx = AppLovinSdkUtils.dpToPx(this, if (isTablet) 90 else 50)
-    maxAdView = ApplovinHepler.loadMaxBanner(this)
-    maxAdView.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx)
-    maxAdView.setBackgroundColor(Color.BLACK)
-    maxAdView.id = R.id.adViewBanner
-    val mainConstraintLayout: ConstraintLayout = findViewById(R.id.mainConstraintLayout)
-    mainConstraintLayout.addView(maxAdView)
-    val constraintSet = ConstraintSet()
-    constraintSet.clone(mainConstraintLayout)
-    constraintSet.connect(R.id.adViewBanner, ConstraintSet.TOP, R.id.txtApplovinMaxRewarded, ConstraintSet.BOTTOM, 24)
-    constraintSet.applyTo(mainConstraintLayout)
-    maxAdView.loadAd()
+    maxAdBannerView = ApplovinHepler.showMaxBanner(this)
+    maxAdBannerView.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPx)
+    maxAdBannerView.setBackgroundColor(Color.BLACK)
+    viewContainerBanner.addView(maxAdBannerView)
+    maxAdBannerView.loadAd()
   }
 
   private fun setupAction() {
@@ -63,6 +61,7 @@ class MainActivity : AppCompatActivity() {
 
   override fun onDestroy() {
     super.onDestroy()
-    maxAdView.destroy()
+    maxAdBannerView.destroy()
+    ApplovinHepler.destroyMaxNative()
   }
 }
