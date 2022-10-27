@@ -1,14 +1,19 @@
 package net.sofigo.screenmirroring
 
 import android.app.Activity
+import android.graphics.Color
 import android.os.Handler
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import com.adjust.sdk.Adjust
 import com.adjust.sdk.AdjustAdRevenue
 import com.adjust.sdk.AdjustConfig
 import com.applovin.mediation.*
+import com.applovin.mediation.ads.MaxAdView
 import com.applovin.mediation.ads.MaxInterstitialAd
 import com.applovin.mediation.ads.MaxRewardedAd
+import com.applovin.sdk.AppLovinSdkUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,6 +23,7 @@ import java.util.concurrent.TimeUnit
 object ApplovinHepler {
 
   private lateinit var maxInterstitialAd: MaxInterstitialAd
+  private lateinit var rewardedAd: MaxRewardedAd
   private var maxRevenueAd = MaxAdRevenueListener { ad -> //    Log.d("===Interstitial event", "")
 
     val adjustAdRevenue = AdjustAdRevenue(AdjustConfig.AD_REVENUE_APPLOVIN_MAX)
@@ -28,12 +34,12 @@ object ApplovinHepler {
 
     Adjust.trackAdRevenue(adjustAdRevenue)
   }
-  private lateinit var rewardedAd: MaxRewardedAd
 
   //endregion
   private var retryAttempt = 0.0
   private lateinit var maxAdListener: MaxAdListener
   private lateinit var maxRewardedAdListener: MaxRewardedAdListener
+  private lateinit var maxBannerAdListener: MaxAdViewAdListener
   private val maxInterAdState = MutableSharedFlow<AdState>()
 
   init {
@@ -113,20 +119,20 @@ object ApplovinHepler {
       maxInterstitialAd.showAd()
     }
   }
-  
+
   fun loadMaxRewarded(activity: Activity) {
-    rewardedAd = MaxRewardedAd.getInstance("YOUR_AD_UNIT_ID", activity)
+    rewardedAd = MaxRewardedAd.getInstance("fa5ccf09afffada3", activity)
     maxRewardedAdListener = object : MaxRewardedAdListener {
       override fun onAdLoaded(ad: MaxAd?) {
         // Rewarded ad is ready to be shown. rewardedAd.isReady() will now return 'true'
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "loaded ${ad?.networkName}")
 
         // Reset retry attempt
         retryAttempt = 0.0
       }
 
       override fun onAdLoadFailed(adUnitId: String?, error: MaxError?) {
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "load failed")
 
         // Rewarded ad failed to load. We recommend retrying with exponentially higher delays up to a maximum delay (in this case 64 seconds).
 
@@ -137,14 +143,14 @@ object ApplovinHepler {
       }
 
       override fun onAdDisplayFailed(ad: MaxAd?, error: MaxError?) {
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "display failed")
 
         // Rewarded ad failed to display. We recommend loading the next ad.
         rewardedAd.loadAd()
       }
 
       override fun onAdDisplayed(ad: MaxAd?) {
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "displayed")
       }
 
       override fun onAdClicked(ad: MaxAd?) {
@@ -152,23 +158,23 @@ object ApplovinHepler {
       }
 
       override fun onAdHidden(ad: MaxAd?) {
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "hidden")
 
         // Rewarded ad is hidden. Pre-load the next ad.
         rewardedAd.loadAd()
       }
 
       override fun onRewardedVideoStarted(ad: MaxAd?) {
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "video started")
       }
 
       override fun onRewardedVideoCompleted(ad: MaxAd?) {
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "video completed")
       }
 
       override fun onUserRewarded(ad: MaxAd?, reward: MaxReward?) {
         // Rewarded ad was displayed and user should receive the reward.
-        Log.d("===rewarded event", "")
+        Log.d("===rewarded event", "rewarded")
       }
     }
     rewardedAd.setListener(maxRewardedAdListener)
@@ -177,10 +183,53 @@ object ApplovinHepler {
     rewardedAd.loadAd()
   }
 
-  fun showMaxRewarded(){
-    if(rewardedAd.isReady) {
+  fun showMaxRewarded() {
+    if (rewardedAd.isReady) {
       rewardedAd.showAd()
     }
+  }
+
+  fun loadMaxBanner(activity: Activity): MaxAdView {
+    val adView = MaxAdView("c870a6d5e8a0beac", activity)
+    maxBannerAdListener = object: MaxAdViewAdListener {
+      //region MAX Ad Listener
+
+      override fun onAdLoaded(ad: MaxAd?) {
+        Log.d("===banner event","loaded ${ad?.networkName}")
+      }
+
+      override fun onAdLoadFailed(adUnitId: String?, error: MaxError?) {
+        Log.d("===banner event","load failed ${error?.code}-${error?.message}")
+      }
+
+      override fun onAdHidden(ad: MaxAd?) {
+        Log.d("===banner event","")
+      }
+
+      override fun onAdDisplayFailed(ad: MaxAd?, error: MaxError?) {
+        Log.d("===banner event","display failed ${error?.code}-${error?.message}")
+      }
+
+      override fun onAdDisplayed(ad: MaxAd?) {
+        Log.d("===banner event","displayed")
+      }
+
+      override fun onAdClicked(ad: MaxAd?) {
+        Log.d("===banner event","clicked")
+      }
+
+      override fun onAdExpanded(ad: MaxAd?) {
+        Log.d("===banner event","expaned")
+      }
+
+      override fun onAdCollapsed(ad: MaxAd?) {
+        Log.d("===banner event","collapsed")
+      }
+    }
+    adView.setListener(maxBannerAdListener)
+    adView.setRevenueListener(maxRevenueAd)
+    adView.loadAd()
+    return adView
   }
 
 
