@@ -1,11 +1,8 @@
 package net.sofigo.screenmirroring
 
 import android.app.Activity
-import android.graphics.Color
 import android.os.Handler
 import android.util.Log
-import android.view.View
-import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.adjust.sdk.Adjust
 import com.adjust.sdk.AdjustAdRevenue
@@ -14,16 +11,13 @@ import com.applovin.mediation.*
 import com.applovin.mediation.ads.MaxAdView
 import com.applovin.mediation.ads.MaxInterstitialAd
 import com.applovin.mediation.ads.MaxRewardedAd
-import com.applovin.mediation.nativeAds.MaxNativeAd
 import com.applovin.mediation.nativeAds.MaxNativeAdListener
 import com.applovin.mediation.nativeAds.MaxNativeAdLoader
 import com.applovin.mediation.nativeAds.MaxNativeAdView
 import com.applovin.mediation.nativeAds.MaxNativeAdViewBinder
-import com.applovin.sdk.AppLovinSdkUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -51,6 +45,7 @@ object ApplovinHepler {
   private lateinit var nativeAdLoader: MaxNativeAdLoader
   private lateinit var nativeAdView: MaxNativeAdView
   private var nativeAd: MaxAd? = null
+
   private val maxInterAdState = MutableSharedFlow<AdState>()
 
   init {
@@ -115,6 +110,8 @@ object ApplovinHepler {
     CoroutineScope(Dispatchers.IO).launch {
       maxInterAdState.emit(AdState.Loading)
     }
+
+
   }
 
   fun showMaxInterstitial(activity: Activity) {
